@@ -27,6 +27,11 @@ namespace Exerussus.EasyEcsNetworkTools
             _handlers.Add(id, newConnectionsHandler);
             return newConnectionsHandler;
         }
+        
+        public void SetConnectionActive(NetworkConnection connection, bool isActive)
+        {
+            if (_handlersByConnection.TryGetValue(connection.ClientId, out var handler)) handler.SetActive(connection, isActive);
+        }
 
         public bool TryGetHandler(string handlerId, out ConnectionsHandler connectionsHandler)
         {
@@ -63,11 +68,12 @@ namespace Exerussus.EasyEcsNetworkTools
             public readonly ConnectionsHub ConnectionsHub;
             public readonly ServerManager ServerManager;
             public readonly Signal Signal;
-            public readonly HashSet<NetworkConnection> ActiveConnections = new HashSet<NetworkConnection>();
+            public readonly HashSet<NetworkConnection> AllConnections = new();
+            public readonly HashSet<NetworkConnection> ActiveConnections = new();
 
             public void AddNewConnection(NetworkConnection connection)
             {
-                ActiveConnections.Add(connection);
+                if (ActiveConnections.Add(connection)) AllConnections.Add(connection);
                 ConnectionsHub.LinkConnectionToHandler(connection, this);
             }
 
@@ -75,6 +81,15 @@ namespace Exerussus.EasyEcsNetworkTools
             {
                 ActiveConnections.Remove(connection);
                 ConnectionsHub.UnlinkConnectionFromHandler(connection);
+            }
+
+            public void SetActive(NetworkConnection connection, bool isActive)
+            {
+                if (AllConnections.Contains(connection))
+                {
+                    if (isActive) ActiveConnections.Add(connection);
+                    else ActiveConnections.Remove(connection);
+                }
             }
             
             public void RemoveAllConnections()
