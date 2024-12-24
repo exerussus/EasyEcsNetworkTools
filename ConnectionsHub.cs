@@ -71,25 +71,30 @@ namespace Exerussus.EasyEcsNetworkTools
             public readonly HashSet<NetworkConnection> AllConnections = new();
             public readonly HashSet<NetworkConnection> ActiveConnections = new();
 
-            public void AddNewConnection(NetworkConnection connection)
+            public ConnectionsHandler AddNewConnection(NetworkConnection connection)
             {
-                if (ActiveConnections.Add(connection)) AllConnections.Add(connection);
+                AllConnections.Add(connection);
                 ConnectionsHub.LinkConnectionToHandler(connection, this);
+                return this;
             }
 
-            public void RemoveConnection(NetworkConnection connection)
+            public ConnectionsHandler RemoveConnection(NetworkConnection connection)
             {
                 ActiveConnections.Remove(connection);
+                AllConnections.Remove(connection);
                 ConnectionsHub.UnlinkConnectionFromHandler(connection);
+                return this;
             }
 
-            public void SetActive(NetworkConnection connection, bool isActive)
+            public ConnectionsHandler SetActive(NetworkConnection connection, bool isActive)
             {
                 if (AllConnections.Contains(connection))
                 {
                     if (isActive) ActiveConnections.Add(connection);
                     else ActiveConnections.Remove(connection);
                 }
+
+                return this;
             }
             
             public void RemoveAllConnections()
