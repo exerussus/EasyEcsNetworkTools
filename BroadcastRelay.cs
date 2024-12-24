@@ -95,7 +95,8 @@ namespace Exerussus.EasyEcsNetworkTools
 
             if (isProtected)
             {
-                
+                _serverManager.RegisterBroadcast<T>(OnBroadcastInHandlerProtected);
+                _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastInHandlerProtected);
             }
             else
             {
@@ -113,6 +114,16 @@ namespace Exerussus.EasyEcsNetworkTools
             data.Connection = connection;
             _signal.RegistryRaise(ref data);
         }
+        
+        private void OnBroadcastGlobalProtected<T>(NetworkConnection connection, T data) where T : struct, IBroadcast, IClientBroadcast
+        {
+            data.Connection = connection;
+            
+            lock (_protectedActions)
+            {
+                _protectedActions.Add(() => _signal.RegistryRaise(ref data));
+            }
+        }
 
         private void OnBroadcastInHandler<T>(NetworkConnection connection, T data) where T : struct, IBroadcast, IClientBroadcast
         {
@@ -120,6 +131,18 @@ namespace Exerussus.EasyEcsNetworkTools
             
             data.Connection = connection;
             connectionsHandler.Signal.RegistryRaise(ref data);
+        }
+
+        private void OnBroadcastInHandlerProtected<T>(NetworkConnection connection, T data) where T : struct, IBroadcast, IClientBroadcast
+        {
+            if (!_connectionsHub.TryGetHandler(connection, out var connectionsHandler)) return;
+
+            data.Connection = connection;
+            
+            lock (_protectedActions)
+            {
+                _protectedActions.Add(() => connectionsHandler.Signal.RegistryRaise(ref data));
+            }
         }
 
 #elif FISHNET_V4
