@@ -35,11 +35,22 @@ namespace Exerussus.EasyEcsNetworkTools
         {
             _disposeAction?.Invoke();
         }
+        
+#if FISHNET_V3
 
+        private void OnBroadcast<T>(T data) where T : struct, IBroadcast
+        {
+            _signal.RegistryRaise(ref data);
+        }
+
+#elif FISHNET_V4
+        
         private void OnBroadcast<T>(T data, Channel channel) where T : struct, IBroadcast
         {
             _signal.RegistryRaise(ref data);
         }
+#endif
+        
     }
     
     public class ServerRelay
