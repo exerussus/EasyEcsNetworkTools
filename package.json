@@ -1,0 +1,26 @@
+{
+  "name": "com.exerussus.easyecs.networktools",
+  "version": "1.0.51",
+  "displayName": "EasyEcs Network Tools",
+  "description": "Инструменты и базовые классы для работы с FishNet и EasyEcs",
+  "unity": "2020.3",
+  "dependencies": {},
+  "keywords": [
+    "leoecslite",
+    "leoecs",
+    "ecs",
+    "performance",
+    "1easyecs",
+    "fishenet",
+    "network",
+    "exerussus"
+  ],
+  "author": {
+    "name": "Exerussus",
+    "email": "solovyov.production@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/exerussus/EasyEcsNetworkTools.git"
+  }
+}
