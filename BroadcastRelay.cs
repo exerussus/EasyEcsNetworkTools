@@ -77,6 +77,24 @@ namespace Exerussus.EasyEcsNetworkTools
             return this;
         }
 
+#if FISHNET_V3
+
+        private void OnBroadcastGlobal<T>(NetworkConnection connection, T data) where T : struct, IBroadcast, IClientBroadcast
+        {
+            data.Connection = connection;
+            _signal.RegistryRaise(ref data);
+        }
+
+        private void OnBroadcastInHandler<T>(NetworkConnection connection, T data) where T : struct, IBroadcast, IClientBroadcast
+        {
+            if (!_connectionsHub.TryGetHandler(connection, out var connectionsHandler)) return;
+            
+            data.Connection = connection;
+            connectionsHandler.Signal.RegistryRaise(ref data);
+        }
+
+#elif FISHNET_V4
+        
         private void OnBroadcastGlobal<T>(NetworkConnection connection, T data, Channel channel) where T : struct, IBroadcast, IClientBroadcast
         {
             data.Connection = connection;
@@ -90,6 +108,8 @@ namespace Exerussus.EasyEcsNetworkTools
             data.Connection = connection;
             connectionsHandler.Signal.RegistryRaise(ref data);
         }
+        
+#endif
 
         public void Unsubscribe()
         {
