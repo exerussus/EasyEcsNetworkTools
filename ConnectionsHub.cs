@@ -10,14 +10,15 @@ namespace Exerussus.EasyEcsNetworkTools
     [Serializable]
     public class ConnectionsHub
     {
-        public ConnectionsHub(ServerManager serverManager)
-        {
-            _serverManager = serverManager;
-        }
-
-        private readonly ServerManager _serverManager;
+        private ServerManager _serverManager;
         private readonly Dictionary<string, ConnectionsHandler> _handlers = new Dictionary<string, ConnectionsHandler>();
         private readonly Dictionary<int, ConnectionsHandler> _handlersByConnection = new Dictionary<int, ConnectionsHandler>();
+        
+        public ConnectionsHub Initialize(ServerManager serverManager)
+        {
+            _serverManager = serverManager;
+            return this;
+        }
         
         public ConnectionsHandler CreateHandler(Signal signal, string id = null)
         {
