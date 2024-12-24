@@ -83,9 +83,18 @@ namespace Exerussus.EasyEcsNetworkTools
         public ServerRelay AddSignalToGlobal<T>(bool isProtected = true) where T : struct, IBroadcast, IClientBroadcast
         {
             if (!_types.Add(typeof(T))) return this;
+
+            if (isProtected)
+            {
+                _serverManager.RegisterBroadcast<T>(OnBroadcastGlobalProtected);
+                _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastGlobalProtected);
+            }
+            else
+            {
+                _serverManager.RegisterBroadcast<T>(OnBroadcastGlobal);
+                _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastGlobal);
+            }
             
-            _serverManager.RegisterBroadcast<T>(OnBroadcastGlobal);
-            _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastGlobal);
             return this;
         }
 
