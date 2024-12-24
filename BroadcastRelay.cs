@@ -60,6 +60,7 @@ namespace Exerussus.EasyEcsNetworkTools
         private readonly HashSet<Type> _types;
         private readonly ServerManager _serverManager;
         private Action _disposeAction;
+        private List<Action> _protectedActions = new();
         
         public ServerRelay(Signal signal, ServerManager serverManager, ConnectionsHub connectionsHub)
         {
@@ -70,7 +71,16 @@ namespace Exerussus.EasyEcsNetworkTools
             _serverManager = serverManager;
         }
 
-        public ServerRelay AddSignalToGlobal<T>() where T : struct, IBroadcast, IClientBroadcast
+        public void Update()
+        {
+            lock (_protectedActions)
+            {
+                foreach (var action in _protectedActions) action.Invoke();
+                _protectedActions.Clear();
+            }
+        }
+
+        public ServerRelay AddSignalToGlobal<T>(bool isProtected = true) where T : struct, IBroadcast, IClientBroadcast
         {
             if (!_types.Add(typeof(T))) return this;
             
@@ -79,12 +89,20 @@ namespace Exerussus.EasyEcsNetworkTools
             return this;
         }
 
-        public ServerRelay AddSignalToHandler<T>() where T : struct, IBroadcast, IClientBroadcast
+        public ServerRelay AddSignalToHandler<T>(bool isProtected = true) where T : struct, IBroadcast, IClientBroadcast
         {
             if (!_types.Add(typeof(T))) return this;
+
+            if (isProtected)
+            {
+                
+            }
+            else
+            {
+                _serverManager.RegisterBroadcast<T>(OnBroadcastInHandler);
+                _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastInHandler);
+            }
             
-            _serverManager.RegisterBroadcast<T>(OnBroadcastInHandler);
-            _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastInHandler);
             return this;
         }
 
@@ -111,6 +129,16 @@ namespace Exerussus.EasyEcsNetworkTools
             data.Connection = connection;
             _signal.RegistryRaise(ref data);
         }
+        
+        private void OnBroadcastGlobalProtected<T>(NetworkConnection connection, T data, Channel channel) where T : struct, IBroadcast, IClientBroadcast
+        {
+            data.Connection = connection;
+            
+            lock (_protectedActions)
+            {
+                _protectedActions.Add(() => _signal.RegistryRaise(ref data));
+            }
+        }
 
         private void OnBroadcastInHandler<T>(NetworkConnection connection, T data, Channel channel) where T : struct, IBroadcast, IClientBroadcast
         {
@@ -118,6 +146,18 @@ namespace Exerussus.EasyEcsNetworkTools
             
             data.Connection = connection;
             connectionsHandler.Signal.RegistryRaise(ref data);
+        }
+
+        private void OnBroadcastInHandlerProtected<T>(NetworkConnection connection, T data, Channel channel) where T : struct, IBroadcast, IClientBroadcast
+        {
+            if (!_connectionsHub.TryGetHandler(connection, out var connectionsHandler)) return;
+
+            data.Connection = connection;
+            
+            lock (_protectedActions)
+            {
+                _protectedActions.Add(() => connectionsHandler.Signal.RegistryRaise(ref data));
+            }
         }
         
 #endif
