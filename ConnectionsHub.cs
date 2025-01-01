@@ -107,6 +107,14 @@ namespace Exerussus.EasyEcsNetworkTools
                 foreach (var connection in ActiveConnections) ServerManager.Broadcast(connection, data);
             }
 
+            public void BroadcastAllInclude<T>(T data, HashSet<int> connectionIds) where T : struct, IBroadcast
+            {
+                foreach (var connection in ActiveConnections)
+                {
+                    if (connectionIds.Contains(connection.ClientId)) ServerManager.Broadcast(connection, data);
+                }
+            }
+
             public void BroadcastAllExclude<T>(T data, NetworkConnection excludeConnection) where T : struct, IBroadcast
             {
                 foreach (var connection in ActiveConnections)
@@ -115,11 +123,35 @@ namespace Exerussus.EasyEcsNetworkTools
                 }
             }
 
-            public void BroadcastAllExclude<T>(T data, HashSet<NetworkConnection> excludeConnections) where T : struct, IBroadcast
+            public void BroadcastAllExclude<T>(T data, int excludeConnectionId) where T : struct, IBroadcast
             {
                 foreach (var connection in ActiveConnections)
                 {
-                    if (!excludeConnections.Contains(connection)) ServerManager.Broadcast(connection, data);
+                    if (connection.ClientId != excludeConnectionId) ServerManager.Broadcast(connection, data);
+                }
+            }
+
+            public void BroadcastAllExclude<T>(T data, HashSet<NetworkConnection> excludeConnections) where T : struct, IBroadcast
+            {
+                if (excludeConnections is not { Count: > 0 }) BroadcastAll(data);
+                else
+                {
+                    foreach (var connection in ActiveConnections)
+                    {
+                        if (!excludeConnections.Contains(connection)) ServerManager.Broadcast(connection, data);
+                    }
+                }
+            }
+
+            public void BroadcastAllExclude<T>(T data, HashSet<int> excludeConnections) where T : struct, IBroadcast
+            {
+                if (excludeConnections is not { Count: > 0 }) BroadcastAll(data);
+                else
+                {
+                    foreach (var connection in ActiveConnections)
+                    {
+                        if (!excludeConnections.Contains(connection.ClientId)) ServerManager.Broadcast(connection, data);
+                    }
                 }
             }
         }
