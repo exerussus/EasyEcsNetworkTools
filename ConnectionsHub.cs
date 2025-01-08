@@ -27,6 +27,19 @@ namespace Exerussus.EasyEcsNetworkTools
             _handlers.Add(id, newConnectionsHandler);
             return newConnectionsHandler;
         }
+
+        public void RemoveHandler(string id)
+        {
+            if (!_handlers.TryGetValue(id, out var handler)) return;
+            RemoveHandler(handler);
+        }
+        
+        public void RemoveHandler(ConnectionsHandler connectionsHandler)
+        {
+            foreach (var connection in connectionsHandler.AllConnections) _handlersByConnection.Remove(connection.ClientId);
+            connectionsHandler.RemoveAllConnections();
+            _handlers.Remove(connectionsHandler.Id);
+        }
         
         public void SetConnectionActive(NetworkConnection connection, bool isActive)
         {
