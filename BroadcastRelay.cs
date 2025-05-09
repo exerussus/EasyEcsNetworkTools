@@ -80,13 +80,13 @@ namespace Exerussus.EasyEcsNetworkTools
             }
         }
 
-        public ServerRelay AddSignalToGlobal<T>(bool isProtected = true) where T : struct, IBroadcast, IClientBroadcast
+        public ServerRelay AddSignalToGlobal<T>(bool isProtected = true, bool requireAuthentication = true) where T : struct, IBroadcast, IClientBroadcast
         {
             if (!_types.Add(typeof(T))) return this;
 
             if (isProtected)
             {
-                _serverManager.RegisterBroadcast<T>(OnBroadcastGlobalProtected);
+                _serverManager.RegisterBroadcast<T>(OnBroadcastGlobalProtected, requireAuthentication);
                 _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastGlobalProtected);
             }
             else
@@ -98,13 +98,13 @@ namespace Exerussus.EasyEcsNetworkTools
             return this;
         }
 
-        public ServerRelay AddSignalToHandler<T>(bool isProtected = true) where T : struct, IBroadcast, IClientBroadcast
+        public ServerRelay AddSignalToHandler<T>(bool isProtected = true, bool requireAuthentication = true) where T : struct, IBroadcast, IClientBroadcast
         {
             if (!_types.Add(typeof(T))) return this;
 
             if (isProtected)
             {
-                _serverManager.RegisterBroadcast<T>(OnBroadcastInHandlerProtected);
+                _serverManager.RegisterBroadcast<T>(OnBroadcastInHandlerProtected, requireAuthentication);
                 _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastInHandlerProtected);
             }
             else
