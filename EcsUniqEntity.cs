@@ -16,5 +16,10 @@ namespace Exerussus.EasyEcsNetworkTools
         public EcsPackedEntity EcsPackedEntity;
         
         public int EcsEntityId => EcsPackedEntity.Id;
+
+        public override string ToString()
+        {
+            return $"{uniqEntity} - {EcsEntityId}";
+        }
     }
 }
