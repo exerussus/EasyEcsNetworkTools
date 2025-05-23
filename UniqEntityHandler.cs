@@ -70,7 +70,7 @@ namespace Exerussus.EasyEcsNetworkTools
             var entity = new UniqEntity { uniqId = _counter.GetNext(), typeId = typeId, isAlive = true };
             _uniqEntities.Add(entity.uniqId, entity);
             UpdateUniqDebugList(entity);
-            if (_logsEnabled) UnityEngine.Debug.Log($"UniqEntityHandler | Created and linked {typeId} | uniqId : {entity.uniqId}, entity : {ecsPackedEntity.Id}.");
+            if (_logsEnabled) UnityEngine.Debug.Log($"UniqEntityHandler | Created and linked {entity}, EcsEntity : {ecsPackedEntity.Id}.");
             return LinkEntity(entity, ecsPackedEntity);
         }
         
@@ -91,7 +91,7 @@ namespace Exerussus.EasyEcsNetworkTools
             var entity = new UniqEntity { uniqId = uniqEntityId, typeId = typeId, isAlive = true };
             _uniqEntities.Add(entity.uniqId, entity);
             UpdateUniqDebugList(entity);
-            if (_logsEnabled) UnityEngine.Debug.Log($"UniqEntityHandler | Added and linked {typeId} | uniqId : {entity.uniqId}, entity : {ecsPackedEntity.Id}.");
+            if (_logsEnabled) UnityEngine.Debug.Log($"UniqEntityHandler | Added and linked {entity}, EcsEntity : {ecsPackedEntity.Id}.");
             return LinkEntity(entity, ecsPackedEntity);
         }
 
