@@ -45,6 +45,41 @@ namespace Exerussus.EasyEcsNetworkTools
             _uniqEntityLinks[DefaultEntityId] = new EcsUniqEntity(_uniqEntities[DefaultEntityId], packedEntity);
         }
 
+        /// <summary> Возвращает список всех уникальных сущностей. </summary>
+        [ClientMethod, ServerMethod]
+        public List<(int uniqEntityId, string typeId)> GetAllUniqEntities()
+        {
+            var result = new List<(int, string)>();
+            foreach (var entity in _uniqEntities.Values) result.Add((entity.uniqId, entity.typeId));
+            return result;
+        }
+
+        /// <summary> Возвращает список всех уникальных живых сущностей. </summary>
+        [ClientMethod, ServerMethod]
+        public List<(int uniqEntityId, string typeId)> GetAllAliveUniqEntities()
+        {
+            var result = new List<(int, string)>();
+            foreach (var entity in _uniqEntities.Values)
+            {
+                if (!entity.isAlive) continue;
+                result.Add((entity.uniqId, entity.typeId));
+            }
+            return result;
+        }
+
+        /// <summary> Возвращает список всех уникальных мертвых сущностей. </summary>
+        [ClientMethod, ServerMethod]
+        public List<(int uniqEntityId, string typeId)> GetAllDeadUniqEntities()
+        {
+            var result = new List<(int, string)>();
+            foreach (var entity in _uniqEntities.Values)
+            {
+                if (entity.isAlive) continue;
+                result.Add((entity.uniqId, entity.typeId));
+            }
+            return result;
+        }
+
         /// <summary> Убивает сущность без конкретного источника. </summary>
         /// <param name="uniqEntityId">ID умирающей сущности.</param>
         [ServerMethod]
