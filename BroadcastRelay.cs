@@ -6,6 +6,7 @@ using FishNet.Broadcast;
 using FishNet.Connection;
 using FishNet.Managing.Server;
 using FishNet.Transporting;
+using UnityEngine;
 
 namespace Exerussus.EasyEcsNetworkTools
 {
@@ -61,9 +62,11 @@ namespace Exerussus.EasyEcsNetworkTools
         private readonly ServerManager _serverManager;
         private Action _disposeAction;
         private List<Action> _protectedActions = new();
-        
-        public ServerRelay(Signal signal, ServerManager serverManager, ConnectionsHub connectionsHub)
+        private readonly bool _isLogsEnabled;
+
+        public ServerRelay(Signal signal, ServerManager serverManager, ConnectionsHub connectionsHub, bool isLogsEnabled = false)
         {
+            _isLogsEnabled = isLogsEnabled;
             _disposeAction = () => { }; 
             _signal = signal;
             _types = new HashSet<Type>();
@@ -83,14 +86,16 @@ namespace Exerussus.EasyEcsNetworkTools
         public ServerRelay AddSignalToGlobal<T>(bool isProtected = true, bool requireAuthentication = true) where T : struct, IBroadcast, IClientBroadcast
         {
             if (!_types.Add(typeof(T))) return this;
-
+            
             if (isProtected)
             {
+                if (_isLogsEnabled) Debug.Log($"ServerRelay | Subscribed {typeof(T).Name} to Global as protected.");
                 _serverManager.RegisterBroadcast<T>(OnBroadcastGlobalProtected, requireAuthentication);
                 _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastGlobalProtected);
             }
             else
             {
+                if (_isLogsEnabled) Debug.Log($"ServerRelay | Subscribed {typeof(T).Name} to Global.");
                 _serverManager.RegisterBroadcast<T>(OnBroadcastGlobal);
                 _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastGlobal);
             }
@@ -104,11 +109,13 @@ namespace Exerussus.EasyEcsNetworkTools
 
             if (isProtected)
             {
+                if (_isLogsEnabled) Debug.Log($"ServerRelay | Subscribed {typeof(T).Name} to Handler as protected.");
                 _serverManager.RegisterBroadcast<T>(OnBroadcastInHandlerProtected, requireAuthentication);
                 _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastInHandlerProtected);
             }
             else
             {
+                if (_isLogsEnabled) Debug.Log($"ServerRelay | Subscribed {typeof(T).Name} to Handler.");
                 _serverManager.RegisterBroadcast<T>(OnBroadcastInHandler);
                 _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastInHandler);
             }
@@ -158,6 +165,7 @@ namespace Exerussus.EasyEcsNetworkTools
         
         private void OnBroadcastGlobal<T>(NetworkConnection connection, T data, Channel channel) where T : struct, IBroadcast, IClientBroadcast
         {
+            if (_isLogsEnabled) Debug.Log($"ServerRelay | Broadcast Global : {typeof(T).Name}.");
             data.Connection = connection;
             _signal.RegistryRaise(ref data);
         }
@@ -168,6 +176,7 @@ namespace Exerussus.EasyEcsNetworkTools
             
             lock (_protectedActions)
             {
+                if (_isLogsEnabled) Debug.Log($"ServerRelay | Broadcast Global : {typeof(T).Name} protected.");
                 _protectedActions.Add(() => _signal.RegistryRaise(ref data));
             }
         }
@@ -176,6 +185,7 @@ namespace Exerussus.EasyEcsNetworkTools
         {
             if (!_connectionsHub.TryGetHandler(connection, out var connectionsHandler)) return;
             
+            if (_isLogsEnabled) Debug.Log($"ServerRelay | Broadcast Handler : {typeof(T).Name}.");
             data.Connection = connection;
             connectionsHandler.Signal.RegistryRaise(ref data);
         }
@@ -188,6 +198,7 @@ namespace Exerussus.EasyEcsNetworkTools
             
             lock (_protectedActions)
             {
+                if (_isLogsEnabled) Debug.Log($"ServerRelay | Broadcast Handler : {typeof(T).Name} as protected.");
                 _protectedActions.Add(() => connectionsHandler.Signal.RegistryRaise(ref data));
             }
         }
