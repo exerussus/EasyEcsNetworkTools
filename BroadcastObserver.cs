@@ -38,16 +38,6 @@ namespace Exerussus.EasyEcsNetworkTools
             _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcast);
             return this;
         }
-
-#if FISHNET_V3
-
-        private void OnBroadcast<T>(NetworkConnection connection, T data) where T : struct, IBroadcast
-        {
-            if (!_connectionsHub.TryGetHandler(connection, out var connectionsHandler)) return;
-            connectionsHandler.BroadcastAllExclude(data, connection);
-        }
-
-#elif FISHNET_V4
         
         private void OnBroadcast<T>(NetworkConnection connection, T data, Channel channel) where T : struct, IBroadcast
         {
@@ -59,9 +49,6 @@ namespace Exerussus.EasyEcsNetworkTools
             connectionsHandler.BroadcastAllExclude(data, connection);
         }
         
-#endif
-        
-
         public void Unsubscribe()
         {
             if (_serverManager != null) _disposeAction?.Invoke();

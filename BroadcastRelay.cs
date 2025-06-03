@@ -37,21 +37,10 @@ namespace Exerussus.EasyEcsNetworkTools
             _disposeAction?.Invoke();
         }
         
-#if FISHNET_V3
-
-        private void OnBroadcast<T>(T data) where T : struct, IBroadcast
-        {
-            _signal.RegistryRaise(ref data);
-        }
-
-#elif FISHNET_V4
-        
         private void OnBroadcast<T>(T data, Channel channel) where T : struct, IBroadcast
         {
             _signal.RegistryRaise(ref data);
         }
-#endif
-        
     }
     
     public class ServerRelay
@@ -123,46 +112,6 @@ namespace Exerussus.EasyEcsNetworkTools
             return this;
         }
 
-#if FISHNET_V3
-
-        private void OnBroadcastGlobal<T>(NetworkConnection connection, T data) where T : struct, IBroadcast, IClientBroadcast
-        {
-            data.Connection = connection;
-            _signal.RegistryRaise(ref data);
-        }
-        
-        private void OnBroadcastGlobalProtected<T>(NetworkConnection connection, T data) where T : struct, IBroadcast, IClientBroadcast
-        {
-            data.Connection = connection;
-            
-            lock (_protectedActions)
-            {
-                _protectedActions.Add(() => _signal.RegistryRaise(ref data));
-            }
-        }
-
-        private void OnBroadcastInHandler<T>(NetworkConnection connection, T data) where T : struct, IBroadcast, IClientBroadcast
-        {
-            if (!_connectionsHub.TryGetHandler(connection, out var connectionsHandler)) return;
-            
-            data.Connection = connection;
-            connectionsHandler.Signal.RegistryRaise(ref data);
-        }
-
-        private void OnBroadcastInHandlerProtected<T>(NetworkConnection connection, T data) where T : struct, IBroadcast, IClientBroadcast
-        {
-            if (!_connectionsHub.TryGetHandler(connection, out var connectionsHandler)) return;
-
-            data.Connection = connection;
-            
-            lock (_protectedActions)
-            {
-                _protectedActions.Add(() => connectionsHandler.Signal.RegistryRaise(ref data));
-            }
-        }
-
-#elif FISHNET_V4
-        
         private void OnBroadcastGlobal<T>(NetworkConnection connection, T data, Channel channel) where T : struct, IBroadcast, IClientBroadcast
         {
             if (_isLogsEnabled) Debug.Log($"ServerRelay | Broadcast Global : {typeof(T).Name}.");
@@ -203,8 +152,6 @@ namespace Exerussus.EasyEcsNetworkTools
             }
         }
         
-#endif
-
         public void Unsubscribe()
         {
             if (_serverManager != null) _disposeAction?.Invoke();
