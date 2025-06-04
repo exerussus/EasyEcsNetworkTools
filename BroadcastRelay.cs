@@ -4,6 +4,7 @@ using Exerussus._1Extensions.SignalSystem;
 using FishNet;
 using FishNet.Broadcast;
 using FishNet.Connection;
+using FishNet.Managing.Client;
 using FishNet.Managing.Server;
 using FishNet.Transporting;
 using UnityEngine;
@@ -12,13 +13,13 @@ namespace Exerussus.EasyEcsNetworkTools
 {
     public class ClientRelay
     {
-        private Action _disposeAction;
+        private Action<ClientManager> _disposeAction;
         private Signal _signal;
         private HashSet<Type> _types;
         
         public ClientRelay(Signal signal)
         {
-            _disposeAction = () => { }; 
+            _disposeAction = _ => { }; 
             _signal = signal;
             _types = new HashSet<Type>();
         }
@@ -28,13 +29,14 @@ namespace Exerussus.EasyEcsNetworkTools
             if (!_types.Add(typeof(T))) return this;
             
             InstanceFinder.ClientManager.RegisterBroadcast<T>(OnBroadcast);
-            _disposeAction += () => InstanceFinder.ClientManager.UnregisterBroadcast<T>(OnBroadcast);
+            _disposeAction += clientManager => clientManager.UnregisterBroadcast<T>(OnBroadcast);
             return this;
         }
 
         public void Unsubscribe()
         {
-            _disposeAction?.Invoke();
+            var clientManager = InstanceFinder.ClientManager;
+            if (clientManager != null) _disposeAction?.Invoke(clientManager);
         }
         
         private void OnBroadcast<T>(T data, Channel channel) where T : struct, IBroadcast
