@@ -33,6 +33,16 @@ namespace Exerussus.EasyEcsNetworkTools
             return this;
         }
 
+        public ClientRelay AddConvertibleSignal<T>(Action<T, Signal> onBroadcast) where T : struct, IBroadcast
+        {
+            Action<T, Channel> action = (data, _) => onBroadcast.Invoke(data, _signal);
+            
+            InstanceFinder.ClientManager.RegisterBroadcast(action);
+            _disposeAction += clientManager => clientManager.UnregisterBroadcast(action);
+            
+            return this;
+        }
+
         public void Unsubscribe()
         {
             var clientManager = InstanceFinder.ClientManager;
