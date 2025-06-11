@@ -46,7 +46,9 @@ namespace Exerussus.EasyEcsNetworkTools
         public void Unsubscribe()
         {
             var clientManager = InstanceFinder.ClientManager;
-            if (clientManager != null) _disposeAction?.Invoke(clientManager);
+            if (clientManager == null) return;
+            _disposeAction?.Invoke(clientManager);
+            _disposeAction = null;
         }
         
         private void OnBroadcast<T>(T data, Channel channel) where T : struct, IBroadcast
@@ -57,7 +59,7 @@ namespace Exerussus.EasyEcsNetworkTools
     
     public class ServerRelay
     {
-        private readonly Signal _signal;
+        private readonly Signal _globalSignal;
         private readonly ConnectionsHub _connectionsHub;
         private readonly HashSet<Type> _types;
         private readonly ServerManager _serverManager;
@@ -65,11 +67,11 @@ namespace Exerussus.EasyEcsNetworkTools
         private List<Action> _protectedActions = new();
         private readonly bool _isLogsEnabled;
 
-        public ServerRelay(Signal signal, ServerManager serverManager, ConnectionsHub connectionsHub, bool isLogsEnabled = false)
+        public ServerRelay(Signal globalSignal, ServerManager serverManager, ConnectionsHub connectionsHub, bool isLogsEnabled = false)
         {
             _isLogsEnabled = isLogsEnabled;
             _disposeAction = () => { }; 
-            _signal = signal;
+            _globalSignal = globalSignal;
             _types = new HashSet<Type>();
             _connectionsHub = connectionsHub;
             _serverManager = serverManager;
@@ -128,7 +130,7 @@ namespace Exerussus.EasyEcsNetworkTools
         {
             if (_isLogsEnabled) Debug.Log($"ServerRelay | Broadcast Global : {typeof(T).Name}.");
             data.Connection = connection;
-            _signal.RegistryRaise(ref data);
+            _globalSignal.RegistryRaise(ref data);
         }
         
         private void OnBroadcastGlobalProtected<T>(NetworkConnection connection, T data, Channel channel) where T : struct, IBroadcast, IClientBroadcast
@@ -138,7 +140,7 @@ namespace Exerussus.EasyEcsNetworkTools
             lock (_protectedActions)
             {
                 if (_isLogsEnabled) Debug.Log($"ServerRelay | Broadcast Global : {typeof(T).Name} protected.");
-                _protectedActions.Add(() => _signal.RegistryRaise(ref data));
+                _protectedActions.Add(() => _globalSignal.RegistryRaise(ref data));
             }
         }
 
@@ -166,7 +168,9 @@ namespace Exerussus.EasyEcsNetworkTools
         
         public void Unsubscribe()
         {
-            if (_serverManager != null) _disposeAction?.Invoke();
+            if (_serverManager == null) return; 
+            _disposeAction?.Invoke();
+            _disposeAction = null;
         }
     }
 
