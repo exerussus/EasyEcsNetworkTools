@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Exerussus._1EasyEcs.Scripts.Core;
 using FishNet.Serializing;
 
 namespace Exerussus.EasyEcsNetworkTools
@@ -49,5 +50,10 @@ namespace Exerussus.EasyEcsNetworkTools
             };
             return uniqEntity;
         }
+    }
+
+    public struct UniqEntityData : IEcsComponent
+    {
+        public EcsUniqEntity Value;
     }
 }
