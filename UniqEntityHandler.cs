@@ -19,10 +19,11 @@ namespace Exerussus.EasyEcsNetworkTools
             InitUniqEntities();
         }
         
-        public UniqEntityHandler(string defaultEntityName, bool logsEnabled = false)
+        public UniqEntityHandler(string defaultEntityTypeId, bool logsEnabled = false)
         {
             _logsEnabled = logsEnabled;
-            _defaultEntityName = defaultEntityName;
+            _defaultEntityTypeName = defaultEntityTypeId;
+            _defaultEntityTypeId = _defaultEntityTypeName.GetStableLongId();
             InitUniqEntities();
         }
         
@@ -34,7 +35,8 @@ namespace Exerussus.EasyEcsNetworkTools
         private Dictionary<int, EcsUniqEntity> _uniqEntityLinks = new(); 
         private Counter _counter = new(1);
         private bool _logsEnabled;
-        private string _defaultEntityName = "world";
+        private string _defaultEntityTypeName = "world";
+        private long _defaultEntityTypeId = 0;
 
         private const int DefaultEntityId = 0;
 
@@ -47,18 +49,18 @@ namespace Exerussus.EasyEcsNetworkTools
 
         /// <summary> Возвращает список всех уникальных сущностей. </summary>
         [ClientMethod, ServerMethod]
-        public List<(int uniqEntityId, string typeId)> GetAllUniqEntities()
+        public List<(int uniqEntityId, long typeId)> GetAllUniqEntities()
         {
-            var result = new List<(int, string)>();
+            var result = new List<(int, long)>();
             foreach (var entity in _uniqEntities.Values) result.Add((entity.uniqId, entity.typeId));
             return result;
         }
 
         /// <summary> Возвращает список всех уникальных живых сущностей. </summary>
         [ClientMethod, ServerMethod]
-        public List<(int uniqEntityId, string typeId)> GetAllAliveUniqEntities()
+        public List<(int uniqEntityId, long typeId)> GetAllAliveUniqEntities()
         {
-            var result = new List<(int, string)>();
+            var result = new List<(int, long)>();
             foreach (var entity in _uniqEntities.Values)
             {
                 if (!entity.isAlive) continue;
@@ -69,9 +71,9 @@ namespace Exerussus.EasyEcsNetworkTools
 
         /// <summary> Возвращает список всех уникальных мертвых сущностей. </summary>
         [ClientMethod, ServerMethod]
-        public List<(int uniqEntityId, string typeId)> GetAllDeadUniqEntities()
+        public List<(int uniqEntityId, long typeId)> GetAllDeadUniqEntities()
         {
-            var result = new List<(int, string)>();
+            var result = new List<(int, long)>();
             foreach (var entity in _uniqEntities.Values)
             {
                 if (entity.isAlive) continue;
@@ -90,7 +92,7 @@ namespace Exerussus.EasyEcsNetworkTools
         
         /// <summary> Создает сущность со стороны сервера. </summary>
         [ServerMethod]
-        public UniqEntity CreateEntity(string typeId)
+        public UniqEntity CreateEntity(long typeId)
         {
             var entity = new UniqEntity { uniqId = _counter.GetNext(), typeId = typeId, isAlive = true };
             _uniqEntities.Add(entity.uniqId, entity);
@@ -100,7 +102,7 @@ namespace Exerussus.EasyEcsNetworkTools
 
         /// <summary> Создает сущность и сразу связывает с ECS. Используется со стороны сервера. </summary>
         [ServerMethod]
-        public EcsUniqEntity CreateEntityAndLink(string typeId, EcsPackedEntity ecsPackedEntity)
+        public EcsUniqEntity CreateEntityAndLink(long typeId, EcsPackedEntity ecsPackedEntity)
         {
             var entity = new UniqEntity { uniqId = _counter.GetNext(), typeId = typeId, isAlive = true };
             _uniqEntities.Add(entity.uniqId, entity);
@@ -111,7 +113,7 @@ namespace Exerussus.EasyEcsNetworkTools
         
         /// <summary> Добавляет уникальную сущность уже по созданному id. Используется со стороны клиента. </summary>
         [ClientMethod]
-        public UniqEntity AddEntity(int uniqEntityId, string typeId)
+        public UniqEntity AddEntity(int uniqEntityId, long typeId)
         {
             var entity = new UniqEntity { uniqId = uniqEntityId, typeId = typeId, isAlive = true };
             _uniqEntities.Add(entity.uniqId, entity);
@@ -121,7 +123,7 @@ namespace Exerussus.EasyEcsNetworkTools
         
         /// <summary> Добавляет уникальную сущность уже по созданному id и связывает его с ECS сущностью. Используется со стороны клиента. </summary>
         [ClientMethod]
-        public EcsUniqEntity AddEntityAndLink(int uniqEntityId, string typeId, EcsPackedEntity ecsPackedEntity)
+        public EcsUniqEntity AddEntityAndLink(int uniqEntityId, long typeId, EcsPackedEntity ecsPackedEntity)
         {
             var entity = new UniqEntity { uniqId = uniqEntityId, typeId = typeId, isAlive = true };
             _uniqEntities.Add(entity.uniqId, entity);
@@ -175,7 +177,7 @@ namespace Exerussus.EasyEcsNetworkTools
         }
         public void InitUniqEntities()
         {
-            _uniqEntities = new() { { DefaultEntityId, new UniqEntity { uniqId = DefaultEntityId, typeId = _defaultEntityName, isAlive = true } } };
+            _uniqEntities = new() { { DefaultEntityId, new UniqEntity { uniqId = DefaultEntityId, typeId = _defaultEntityTypeId, isAlive = true } } };
 
 #if UNITY_EDITOR
             uniqEntitiesList = new();

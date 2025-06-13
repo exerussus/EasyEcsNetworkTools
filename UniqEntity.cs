@@ -11,8 +11,8 @@ namespace Exerussus.EasyEcsNetworkTools
         
         /// <summary> Уникальный ключ сущности, который никогда не повторяется. </summary>
         public int uniqId;
-        /// <summary> GAID сущности, или его аналог. </summary>
-        public string typeId;
+        /// <summary> Уникальный ID сгенерированный на основе typeName. </summary>
+        public long typeId;
         /// <summary> Сущность всё ещё жива. </summary>
         public bool isAlive;
 
@@ -44,7 +44,7 @@ namespace Exerussus.EasyEcsNetworkTools
             UniqEntity uniqEntity = new UniqEntity
             {
                 uniqId = reader.Read<int>(),
-                typeId = reader.Read<string>(),
+                typeId = reader.Read<long>(),
                 isAlive = reader.Read<bool>()
             };
             return uniqEntity;
