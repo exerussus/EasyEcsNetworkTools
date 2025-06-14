@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Exerussus._1EasyEcs.Scripts.Core;
+using Exerussus._1Extensions.SmallFeatures;
 using FishNet.Serializing;
 
 namespace Exerussus.EasyEcsNetworkTools
@@ -21,7 +22,7 @@ namespace Exerussus.EasyEcsNetworkTools
 
         public override string ToString()
         {
-            return $"({typeId}:{uniqId})";
+            return typeId.TryGetStringFromStableId(out var typeName) ? $"(typeName: {typeName} | typeId: {typeId} | uniqId: {uniqId})" : $"(typeId: {typeId} | uniqId: {uniqId})";
         }
     }
 

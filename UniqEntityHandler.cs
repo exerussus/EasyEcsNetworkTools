@@ -13,7 +13,7 @@ namespace Exerussus.EasyEcsNetworkTools
 #endif
     public class UniqEntityHandler
     {
-        public UniqEntityHandler(bool logsEnabled = false)
+        public UniqEntityHandler(bool logsEnabled = false, bool debugMod = false)
         {
             _logsEnabled = logsEnabled;
             InitUniqEntities();
