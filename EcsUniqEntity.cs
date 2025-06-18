@@ -19,6 +19,11 @@ namespace Exerussus.EasyEcsNetworkTools
         public int UniqId => uniqEntity.uniqId;
         public long TypeId => uniqEntity.typeId;
 
+        public bool Unpack(EcsWorld world)
+        {
+            return EcsPackedEntity.Unpack(world, out _);
+        }
+        
         public override string ToString()
         {
             return $"{uniqEntity} - {EcsEntityId}";
