@@ -52,9 +52,4 @@ namespace Exerussus.EasyEcsNetworkTools
             return uniqEntity;
         }
     }
-
-    public struct UniqEntityData : IEcsComponent
-    {
-        public EcsUniqEntity Value;
-    }
 }
