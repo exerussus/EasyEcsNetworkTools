@@ -44,9 +44,15 @@ namespace Exerussus.EasyEcsNetworkTools
             return this;
         }
 
-        public ClientRelay AddConvertibleSignal<T>(Action<T, Signal> onBroadcast) where T : struct, IBroadcast
+        public ClientRelay AddSignalTranslator<TBroadcast, TSignal>(SignalTranslator<TBroadcast, TSignal> function) 
+            where TBroadcast : struct, IBroadcast
+            where TSignal : struct
         {
-            Action<T, Channel> action = (data, _) => onBroadcast.Invoke(data, _signal);
+            Action<TBroadcast, Channel> action = (data, _) =>
+            {
+                var result = function.Invoke(data, out var signal);
+                if (result) _signal.RegistryRaise(ref signal);
+            };
             
             InstanceFinder.ClientManager.RegisterBroadcast(action);
             _disposeAction += clientManager => clientManager.UnregisterBroadcast(action);
@@ -66,5 +72,9 @@ namespace Exerussus.EasyEcsNetworkTools
         {
             _signal.RegistryRaise(ref data);
         }
+        
+        public delegate bool SignalTranslator<in TBroadcast, TSignal>(TBroadcast broadcast, out TSignal signal)
+            where TBroadcast : struct, IBroadcast 
+            where TSignal : struct;
     }
 }

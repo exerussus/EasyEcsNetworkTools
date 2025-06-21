@@ -65,7 +65,7 @@ namespace Exerussus.EasyEcsNetworkTools
             else
             {
                 if (_isLogsEnabled) Debug.Log($"ServerRelay | Subscribed {typeof(T).Name} to Global.");
-                _serverManager.RegisterBroadcast<T>(OnBroadcastGlobal);
+                _serverManager.RegisterBroadcast<T>(OnBroadcastGlobal, requireAuthentication);
                 _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastGlobal);
             }
             
@@ -85,9 +85,66 @@ namespace Exerussus.EasyEcsNetworkTools
             else
             {
                 if (_isLogsEnabled) Debug.Log($"ServerRelay | Subscribed {typeof(T).Name} to Handler.");
-                _serverManager.RegisterBroadcast<T>(OnBroadcastInHandler);
+                _serverManager.RegisterBroadcast<T>(OnBroadcastInHandler, requireAuthentication);
                 _disposeAction += () => _serverManager.UnregisterBroadcast<T>(OnBroadcastInHandler);
             }
+
+            return this;
+        }
+
+        public ServerRelay AddSignalTranslatorToHandler<TBroadcast, TSignal>(SignalTranslator<TBroadcast, TSignal> function, bool requireAuthentication = true) 
+            where TBroadcast : struct, IBroadcast, IClientBroadcast
+            where TSignal : struct
+        {
+            if (!_types.Add(typeof(TBroadcast))) return this;
+
+            if (_isLogsEnabled) Debug.Log($"ServerRelay | Subscribed translator {typeof(TBroadcast).Name} --> {typeof(TSignal).Name} to Handler as protected.");
+
+            Action<NetworkConnection, TBroadcast, Channel> action = (connection, broadcast, _) =>
+            {
+                if (!_connectionsHub.TryGetHandler(connection, out var connectionsHandler)) return;
+                broadcast.Connection = connection;
+                var isValid = function.Invoke(broadcast, out var signal);
+                if (isValid)
+                {
+                    lock (_protectedActions)
+                    {
+                        if (_isLogsEnabled) Debug.Log($"ServerRelay | Broadcast Handler : {typeof(TBroadcast).Name} as translated to {typeof(TSignal).Name}.");
+                        _protectedActions.Add(() => connectionsHandler.Signal.RegistryRaise(ref signal));
+                    }
+                }
+            };
+            
+            _serverManager.RegisterBroadcast(action, requireAuthentication);
+            _disposeAction += () => _serverManager.UnregisterBroadcast(action);
+            
+            return this;
+        }
+
+        public ServerRelay AddSignalTranslatorToGlobal<TBroadcast, TSignal>(SignalTranslator<TBroadcast, TSignal> function, bool requireAuthentication = true) 
+            where TBroadcast : struct, IBroadcast, IClientBroadcast
+            where TSignal : struct
+        {
+            if (!_types.Add(typeof(TBroadcast))) return this;
+
+            if (_isLogsEnabled) Debug.Log($"ServerRelay | Subscribed translator {typeof(TBroadcast).Name} --> {typeof(TSignal).Name} to Global as protected.");
+
+            Action<NetworkConnection, TBroadcast, Channel> action = (connection, broadcast, _) =>
+            {
+                broadcast.Connection = connection;
+                var isValid = function.Invoke(broadcast, out var signal);
+                if (isValid)
+                {
+                    lock (_protectedActions)
+                    {
+                        if (_isLogsEnabled) Debug.Log($"ServerRelay | Broadcast Global : {typeof(TBroadcast).Name} as translated to {typeof(TSignal).Name}.");
+                        _protectedActions.Add(() => _globalSignal.RegistryRaise(ref signal));
+                    }
+                }
+            };
+            
+            _serverManager.RegisterBroadcast(action, requireAuthentication);
+            _disposeAction += () => _serverManager.UnregisterBroadcast(action);
             
             return this;
         }
@@ -138,5 +195,9 @@ namespace Exerussus.EasyEcsNetworkTools
             _disposeAction?.Invoke();
             _disposeAction = null;
         }
+        
+        public delegate bool SignalTranslator<in TBroadcast, TSignal>(TBroadcast broadcast, out TSignal signal)
+            where TBroadcast : struct, IClientBroadcast, IBroadcast 
+            where TSignal : struct;
     }
 }
