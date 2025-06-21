@@ -30,19 +30,6 @@ namespace Exerussus.EasyEcsNetworkTools
             _serverManager = serverManager;
         }
 
-        public void TryAddSubscriptions(EcsGroup ecsGroup)
-        {
-            var systems = ecsGroup.GetAllSystems();
-
-            if (ecsGroup.GetPooler() is IServerRelayUser userPooler) userPooler.ServerRelaySubscribe(this);
-
-            foreach (var system in systems)
-            {
-                if (system is not IServerRelayUser userSystem) continue;
-                userSystem.ServerRelaySubscribe(this);
-            }
-        }
-
         public void Update()
         {
             lock (_protectedActions)

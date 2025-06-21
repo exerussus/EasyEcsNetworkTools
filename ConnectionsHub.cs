@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Exerussus._1Extensions.SignalSystem;
+using Exerussus._1Extensions.SmallFeatures;
 using FishNet.Broadcast;
 using FishNet.Connection;
 using FishNet.Managing.Server;
+using FishNet.Transporting;
 
 namespace Exerussus.EasyEcsNetworkTools
 {
@@ -11,8 +13,9 @@ namespace Exerussus.EasyEcsNetworkTools
     public class ConnectionsHub
     {
         private ServerManager _serverManager;
-        private readonly Dictionary<string, ConnectionsHandler> _handlers = new Dictionary<string, ConnectionsHandler>();
+        private readonly Dictionary<long, ConnectionsHandler> _handlers = new Dictionary<long, ConnectionsHandler>();
         private readonly Dictionary<int, ConnectionsHandler> _handlersByConnection = new Dictionary<int, ConnectionsHandler>();
+        private readonly Dictionary<Type, int> _subsCounter = new Dictionary<Type, int>();
         
         public ConnectionsHub Initialize(ServerManager serverManager)
         {
@@ -23,12 +26,13 @@ namespace Exerussus.EasyEcsNetworkTools
         public ConnectionsHandler CreateHandler(Signal signal, string id = null)
         {
             id ??= Guid.NewGuid().ToString();
-            var newConnectionsHandler = new ConnectionsHandler(id, this, _serverManager, signal);
-            _handlers.Add(id, newConnectionsHandler);
+            var idLong = id.GetStableLongId(); 
+            var newConnectionsHandler = new ConnectionsHandler(idLong, this, _serverManager, signal);
+            _handlers.Add(idLong, newConnectionsHandler);
             return newConnectionsHandler;
         }
 
-        public void RemoveHandler(string id)
+        public void RemoveHandler(long id)
         {
             if (!_handlers.TryGetValue(id, out var handler)) return;
             RemoveHandler(handler);
@@ -46,7 +50,7 @@ namespace Exerussus.EasyEcsNetworkTools
             if (_handlersByConnection.TryGetValue(connection.ClientId, out var handler)) handler.SetActive(connection, isActive);
         }
 
-        public bool TryGetHandler(string handlerId, out ConnectionsHandler connectionsHandler)
+        public bool TryGetHandler(long handlerId, out ConnectionsHandler connectionsHandler)
         {
             return _handlers.TryGetValue(handlerId, out connectionsHandler);
         }
@@ -69,7 +73,7 @@ namespace Exerussus.EasyEcsNetworkTools
         [Serializable]
         public class ConnectionsHandler
         {
-            public ConnectionsHandler(string id, ConnectionsHub connectionsHub, ServerManager serverManager, Signal signal)
+            public ConnectionsHandler(long id, ConnectionsHub connectionsHub, ServerManager serverManager, Signal signal)
             {
                 Id = id;
                 ConnectionsHub = connectionsHub;
@@ -77,12 +81,14 @@ namespace Exerussus.EasyEcsNetworkTools
                 Signal = signal;
             }
 
-            public readonly string Id;
+            public readonly long Id;
             public readonly ConnectionsHub ConnectionsHub;
             public readonly ServerManager ServerManager;
             public readonly Signal Signal;
             public readonly HashSet<NetworkConnection> AllConnections = new();
             public readonly HashSet<NetworkConnection> ActiveConnections = new();
+        
+            private Action _disposeAction;
 
             public ConnectionsHandler AddNewConnection(NetworkConnection connection)
             {
