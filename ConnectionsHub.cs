@@ -115,6 +115,11 @@ namespace Exerussus.EasyEcsNetworkTools
                 ActiveConnections.Clear();
             }
 
+            public void Broadcast<T>(NetworkConnection connection, T data) where T : struct, IBroadcast
+            {
+                ServerManager.Broadcast(connection, data);
+            }
+
             public void BroadcastAll<T>(T data) where T : struct, IBroadcast
             {
                 foreach (var connection in ActiveConnections) ServerManager.Broadcast(connection, data);
