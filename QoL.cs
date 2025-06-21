@@ -1,4 +1,5 @@
 ﻿using Exerussus._1EasyEcs.Scripts.Core;
+using Leopotam.EcsLite;
 
 namespace Exerussus.EasyEcsNetworkTools
 {
@@ -66,6 +67,11 @@ namespace Exerussus.EasyEcsNetworkTools
             if (!pool.Has(ecsUniqEntity.EcsEntityId)) return false;
             pool.Del(ecsUniqEntity.EcsEntityId);
             return true;
+        }
+
+        public static EcsUniqEntity CreateAndLinkPackedEntity(this UniqEntityHandler uniqEntityHandler, long typeId, EcsWorld world)
+        {
+            return uniqEntityHandler.CreateEntityAndLink(typeId, world.PackEntity(world.NewEntity()));
         }
     }
 }
