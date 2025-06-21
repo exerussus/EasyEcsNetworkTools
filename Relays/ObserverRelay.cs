@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using Exerussus._1EasyEcs.Scripts.Custom;
 using Exerussus._1Extensions.SignalSystem;
 using FishNet;
 using FishNet.Broadcast;
 using FishNet.Connection;
 using FishNet.Managing.Server;
 using FishNet.Transporting;
+using Leopotam.EcsLite;
 using UnityEngine;
 
 namespace Exerussus.EasyEcsNetworkTools
@@ -27,6 +29,19 @@ namespace Exerussus.EasyEcsNetworkTools
             _connectionsHub = connectionsHub;
             _serverManager = InstanceFinder.ServerManager;
             _logsEnabled = logsEnabled;
+        }
+        
+        public void TryAddSubscriptions(EcsGroup ecsGroup)
+        {
+            var systems = ecsGroup.GetAllSystems();
+
+            if (ecsGroup.GetPooler() is IObserverRelayUser userPooler) userPooler.ObserverRelaySubscribe(this);
+
+            foreach (var system in systems)
+            {
+                if (system is not IObserverRelayUser userSystem) continue;
+                userSystem.ObserverRelaySubscribe(this);
+            }
         }
 
         public ObserverRelay AddSignal<T>() where T : struct, IBroadcast

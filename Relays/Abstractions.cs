@@ -14,11 +14,11 @@ namespace Exerussus.EasyEcsNetworkTools
     
     public interface IClientRelayUser
     {
-        public void ClientRelaySubscribe(ClientRelay serverRelay);
+        public void ClientRelaySubscribe(ClientRelay clientRelay);
     }
     
     public interface IObserverRelayUser
     {
-        public void ClientRelaySubscribe(ObserverRelay serverRelay);
+        public void ObserverRelaySubscribe(ObserverRelay observerRelay);
     }
 }

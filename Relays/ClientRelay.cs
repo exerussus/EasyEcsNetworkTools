@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Exerussus._1EasyEcs.Scripts.Custom;
 using Exerussus._1Extensions.SignalSystem;
 using FishNet;
 using FishNet.Broadcast;
@@ -19,6 +20,19 @@ namespace Exerussus.EasyEcsNetworkTools
             _disposeAction = _ => { }; 
             _signal = signal;
             _types = new HashSet<Type>();
+        }
+
+        public void TryAddSubscriptions(EcsGroup ecsGroup)
+        {
+            var systems = ecsGroup.GetAllSystems();
+
+            if (ecsGroup.GetPooler() is IClientRelayUser userPooler) userPooler.ClientRelaySubscribe(this);
+
+            foreach (var system in systems)
+            {
+                if (system is not IClientRelayUser userSystem) continue;
+                userSystem.ClientRelaySubscribe(this);
+            }
         }
 
         public ClientRelay AddSignal<T>() where T : struct, IBroadcast
