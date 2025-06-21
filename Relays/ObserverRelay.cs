@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Exerussus.EasyEcsNetworkTools
 {
-    public class BroadcastObserver
+    public class ObserverRelay
     {
         private Action _disposeAction;
         private Signal _signal;
@@ -19,7 +19,7 @@ namespace Exerussus.EasyEcsNetworkTools
         private ConnectionsHub _connectionsHub;
         private bool _logsEnabled;
         
-        public BroadcastObserver(Signal signal, ConnectionsHub connectionsHub, bool logsEnabled = false)
+        public ObserverRelay(Signal signal, ConnectionsHub connectionsHub, bool logsEnabled = false)
         {
             _disposeAction = () => { }; 
             _signal = signal;
@@ -29,7 +29,7 @@ namespace Exerussus.EasyEcsNetworkTools
             _logsEnabled = logsEnabled;
         }
 
-        public BroadcastObserver AddSignal<T>() where T : struct, IBroadcast
+        public ObserverRelay AddSignal<T>() where T : struct, IBroadcast
         {
             if (!_types.Add(typeof(T))) return this;
             
