@@ -31,6 +31,13 @@ namespace Exerussus.EasyEcsNetworkTools
             _handlers.Add(idLong, newConnectionsHandler);
             return newConnectionsHandler;
         }
+        
+        public ConnectionsHandler CreateHandler(Signal signal, long id)
+        {
+            var newConnectionsHandler = new ConnectionsHandler(id, this, _serverManager, signal);
+            _handlers.Add(id, newConnectionsHandler);
+            return newConnectionsHandler;
+        }
 
         public void RemoveHandler(long id)
         {
