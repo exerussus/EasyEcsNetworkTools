@@ -6,6 +6,7 @@ using FishNet.Broadcast;
 using FishNet.Connection;
 using FishNet.Managing.Server;
 using FishNet.Transporting;
+using UnityEngine;
 
 namespace Exerussus.EasyEcsNetworkTools
 {
@@ -150,7 +151,11 @@ namespace Exerussus.EasyEcsNetworkTools
             {
                 foreach (var connection in ActiveConnections)
                 {
-                    if (connection.ClientId != excludeConnection.ClientId) ServerManager.Broadcast(connection, data);
+                    if (connection.ClientId != excludeConnection.ClientId)
+                    {
+                        Debug.Log($"BroadcastAllExclude.{typeof(T).Name} : {connection.ClientId} != {excludeConnection.ClientId}");
+                        ServerManager.Broadcast(connection, data);
+                    }
                 }
             }
 
