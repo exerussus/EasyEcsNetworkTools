@@ -151,11 +151,7 @@ namespace Exerussus.EasyEcsNetworkTools
             {
                 foreach (var connection in ActiveConnections)
                 {
-                    if (connection.ClientId != excludeConnection.ClientId)
-                    {
-                        Debug.Log($"BroadcastAllExclude.{typeof(T).Name} : {connection.ClientId} != {excludeConnection.ClientId}");
-                        ServerManager.Broadcast(connection, data);
-                    }
+                    if (connection.ClientId != excludeConnection.ClientId) ServerManager.Broadcast(connection, data);
                 }
             }
 
