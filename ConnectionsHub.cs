@@ -150,7 +150,7 @@ namespace Exerussus.EasyEcsNetworkTools
             {
                 foreach (var connection in ActiveConnections)
                 {
-                    if (connection != excludeConnection) ServerManager.Broadcast(connection, data);
+                    if (connection.ClientId != excludeConnection.ClientId) ServerManager.Broadcast(connection, data);
                 }
             }
 
