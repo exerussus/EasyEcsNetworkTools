@@ -1,6 +1,6 @@
 {
   "name": "com.exerussus.easyecs.networktools",
-  "version": "1.0.42",
+  "version": "1.0.43",
   "displayName": "EasyEcs Network Tools",
   "description": "Инструменты и базовые классы для работы с FishNet и EasyEcs",
   "unity": "2020.3",

@@ -6,6 +6,7 @@ using FishNet;
 using FishNet.Broadcast;
 using FishNet.Managing.Client;
 using FishNet.Transporting;
+using UnityEngine;
 
 namespace Exerussus.EasyEcsNetworkTools
 {
@@ -14,12 +15,14 @@ namespace Exerussus.EasyEcsNetworkTools
         private Action<ClientManager> _disposeAction;
         private Signal _signal;
         private HashSet<Type> _types;
+        private bool _isLogsEnabled;
         
-        public ClientRelay(Signal signal)
+        public ClientRelay(Signal signal, bool isLogsEnabled = false)
         {
             _disposeAction = _ => { }; 
             _signal = signal;
             _types = new HashSet<Type>();
+            _isLogsEnabled = isLogsEnabled;
         }
 
         public void TryAddSubscriptions(EcsGroup ecsGroup)
@@ -37,6 +40,7 @@ namespace Exerussus.EasyEcsNetworkTools
 
         public ClientRelay AddSignal<T>() where T : struct, IBroadcast
         {
+            if (_isLogsEnabled) Debug.Log($"ClientRelay.AddSignal | Subscribed to {typeof(T).Name}.");
             if (!_types.Add(typeof(T))) return this;
             
             InstanceFinder.ClientManager.RegisterBroadcast<T>(OnBroadcast);
@@ -48,6 +52,7 @@ namespace Exerussus.EasyEcsNetworkTools
             where TBroadcast : struct, IBroadcast
             where TSignal : struct
         {
+            if (_isLogsEnabled) Debug.Log($"ClientRelay.AddSignalTranslator | Subscribed to {typeof(TBroadcast).Name}.");
             Action<TBroadcast, Channel> action = (data, _) =>
             {
                 var result = function.Invoke(data, out var signal);
@@ -63,13 +68,18 @@ namespace Exerussus.EasyEcsNetworkTools
         public void Unsubscribe()
         {
             var clientManager = InstanceFinder.ClientManager;
-            if (clientManager == null) return;
+            if (clientManager == null)
+            {
+                if (_isLogsEnabled) Debug.LogWarning("ServerRelay.Unsubscribe | ClientManager is null.");
+                return;
+            }
             _disposeAction?.Invoke(clientManager);
             _disposeAction = null;
         }
         
         private void OnBroadcast<T>(T data, Channel channel) where T : struct, IBroadcast
         {
+            if (_isLogsEnabled) Debug.Log($"ClientRelay | Broadcast : {typeof(T).Name}.");
             _signal.RegistryRaise(ref data);
         }
         
