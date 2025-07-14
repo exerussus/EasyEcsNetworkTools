@@ -44,7 +44,11 @@ namespace Exerussus.EasyEcsNetworkTools
             if (!_types.Add(typeof(T))) return this;
             
             InstanceFinder.ClientManager.RegisterBroadcast<T>(OnBroadcast);
-            _disposeAction += clientManager => clientManager.UnregisterBroadcast<T>(OnBroadcast);
+            _disposeAction += clientManager =>
+            {
+                if (_isLogsEnabled) Debug.Log($"ClientRelay | Unsubscribed to {typeof(T).Name}.");
+                clientManager.UnregisterBroadcast<T>(OnBroadcast);
+            };
             return this;
         }
 
@@ -60,7 +64,11 @@ namespace Exerussus.EasyEcsNetworkTools
             };
             
             InstanceFinder.ClientManager.RegisterBroadcast(action);
-            _disposeAction += clientManager => clientManager.UnregisterBroadcast(action);
+            _disposeAction += clientManager =>
+            {
+                if (_isLogsEnabled) Debug.Log($"ClientRelay | Unsubscribed to {typeof(TBroadcast).Name}.");
+                clientManager.UnregisterBroadcast(action);
+            };
             
             return this;
         }
