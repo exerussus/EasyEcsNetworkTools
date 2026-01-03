@@ -29,7 +29,13 @@ namespace Exerussus.EasyEcsNetworkTools
         {
             var systems = ecsGroup.GetAllSystems();
 
-            if (ecsGroup.GetPooler() is IClientRelayUser userPooler) userPooler.ClientRelaySubscribe(this);
+            if (ecsGroup.Poolers is { Length: > 0 })
+            {
+                foreach (var pooler in ecsGroup.Poolers)
+                {
+                    if (pooler is IClientRelayUser userPooler) userPooler.ClientRelaySubscribe(this);
+                }
+            }
 
             foreach (var system in systems)
             {

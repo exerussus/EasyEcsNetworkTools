@@ -5,8 +5,6 @@ using Exerussus._1Extensions.SmallFeatures;
 using FishNet.Broadcast;
 using FishNet.Connection;
 using FishNet.Managing.Server;
-using FishNet.Transporting;
-using UnityEngine;
 
 namespace Exerussus.EasyEcsNetworkTools
 {

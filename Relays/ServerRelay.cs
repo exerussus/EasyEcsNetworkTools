@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Exerussus._1EasyEcs.Scripts.Custom;
 using Exerussus._1Extensions.SignalSystem;
 using FishNet.Broadcast;
 using FishNet.Connection;
